@@ -1,2 +1,2 @@
-REPO mssql
+REPO cockroachdb
 LOAD cockroachdb.yml
