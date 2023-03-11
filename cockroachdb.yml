@@ -1,0 +1,45 @@
+namespace: cockroachdb
+
+db:
+  metadata:
+    defines: metadata
+    name: CockroachDB
+    description: CockroachDB is a distributed database with standard SQL for cloud applications. CockroachDB powers companies like Comcast, Lush, and Bose
+    website: https://www.cockroachlabs.com/
+    publisher: monk.io
+    icon: https://crl2020.imgix.net/img/stacked-logo-hr.png
+  defines: runnable
+  variables:
+    db_port:
+      type: int
+      value: 26257
+    admin_port:
+      type: int
+      value: 8080
+    image:
+      type: string
+      value: v20.1.4
+    volume_local:
+      type: string
+      value: <- `${monk-volume-path}/cockroachdb`
+  containers:
+    db:
+      image: cockroachdb/cockroach
+      image-tag: <- `${image}`
+      bash: cockroach start-single-node --insecure
+      ports:
+        - <- `${db_port}:26257`
+        - <- `${admin_port}:8080`
+      paths:
+        - <- `${volume_local}:/cockroach/cockroach-data`
+  services:
+    admin:
+      port: 8080
+      container: db
+      protocol: tcp
+      host-port: <- `${admin_port}`
+    db:
+      port: 26257
+      container: db
+      protocol: tcp
+      host-port: <- `${db_port}`
