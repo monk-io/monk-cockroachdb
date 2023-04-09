@@ -53,7 +53,6 @@ foo@bar:~$ monk run cockroachdb/db
 | db_port      | CockroachDB database port        | 26257                           |
 | admin_port   | CockroachDB admin interface port | 8080                            |
 | image        | Docker image tag                 | v20.1.4                         |
-| volume_local | Volume path                      | ${monk-volume-path}/cockroachdb |
 
 ## Stop, remove and clean up workloads and templates
 

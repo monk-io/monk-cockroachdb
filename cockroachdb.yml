@@ -1,14 +1,29 @@
+---
 namespace: cockroachdb
-
-db:
+base:
   metadata:
     defines: metadata
     name: CockroachDB
-    description: CockroachDB is a distributed database with standard SQL for cloud applications. CockroachDB powers companies like Comcast, Lush, and Bose
+    description: |
+      CockroachDB is an open-source distributed SQL database system that is designed to handle large-scale, online transaction processing (OLTP) workloads with high availability and strong consistency. It is inspired by Google's Spanner distributed database system and is built to be scalable, fault-tolerant, and easy to manage.
+
+      CockroachDB uses a distributed architecture that allows it to scale horizontally across multiple nodes, providing high availability and fault tolerance. It is designed to automatically handle node failures, rebalancing data across the cluster, and providing consistent performance even as the cluster grows.
+
+      CockroachDB supports ACID transactions and SQL queries, making it easy for developers to build applications that require strong consistency and high availability. It also provides a number of features for data replication, sharding, and partitioning, allowing users to customize the database to meet their specific needs.
+
+      CockroachDB includes a number of built-in tools for data backup and recovery, cluster management, and monitoring. It also includes support for a variety of programming languages, making it easy for developers to integrate CockroachDB into their existing workflows.
     website: https://www.cockroachlabs.com/
     publisher: monk.io
     icon: https://crl2020.imgix.net/img/stacked-logo-hr.png
+  containers:
+    db:
+      image: cockroachdb/cockroach
+      image-tag: <- `${image}`
+      bash: cockroach start-single-node --insecure
+
+db:
   defines: runnable
+  inherits: cockroachdb/base
   variables:
     db_port:
       type: int
@@ -22,16 +37,6 @@ db:
     volume_local:
       type: string
       value: <- `${monk-volume-path}/cockroachdb`
-  containers:
-    db:
-      image: cockroachdb/cockroach
-      image-tag: <- `${image}`
-      bash: cockroach start-single-node --insecure
-      ports:
-        - <- `${db_port}:26257`
-        - <- `${admin_port}:8080`
-      paths:
-        - <- `${volume_local}:/cockroach/cockroach-data`
   services:
     admin:
       port: 8080
