@@ -47,4 +47,3 @@ db:
       port: 26257
       container: db
       protocol: tcp
-      host-port: <- `${db_port}`
