@@ -1,0 +1,129 @@
+---
+title: CockroachDB
+description: Ready-to-run CockroachDB container template you can run directly or inherit to integrate a distributed SQL database into your stack.
+primary_category: database
+tags: [cockroachdb, sql, database, template, runnable, distributed, postgres-compatible]
+integration_type: template
+hosting_models: [self-hosted]
+website_url: https://www.cockroachlabs.com/
+docs_url: https://www.cockroachlabs.com/docs/
+publisher: monk.io
+---
+
+## Overview
+
+This template provides a production‑ready CockroachDB instance as a Monk runnable. You can:
+
+- Run it directly to get a managed CockroachDB container with sensible defaults
+- Inherit it in your own runnable to seamlessly add a distributed SQL database to your stack
+
+It exposes CockroachDB on port 26257, provides an admin UI on port 8080, and persists data to a host volume. CockroachDB is a distributed SQL database built on a transactional and strongly-consistent key-value store. It scales horizontally, survives disk, machine, rack, and even datacenter failures with minimal latency disruption and no manual intervention. It supports strongly-consistent ACID transactions and provides a familiar SQL API for structuring, manipulating, and querying data.
+
+## What this template manages
+
+- CockroachDB container (`cockroach` image, configurable tag)
+- Network service on port 26257 (SQL connections)
+- Admin UI on port 8080
+- Persistent volumes for data storage
+
+## Quick start (run directly)
+
+1) Load templates
+
+```bash
+monk load MANIFEST
+```
+
+2) Run CockroachDB with defaults
+
+```bash
+monk run cockroachdb/db
+```
+
+3) Customize configuration (recommended via inheritance)
+
+Running directly uses the defaults defined in this template's `variables`. Secrets added with `monk secrets add` will not affect this runnable unless you inherit it and reference those secrets.
+
+- Preferred: inherit and replace variables with `secret("...")` as shown below.
+- Alternative: fork/clone and edit the `variables` in `cockroachdb.yml`, then `monk load MANIFEST` and run.
+
+Once started, connect to `localhost:26257` (or the runnable hostname inside Monk networks) using a PostgreSQL-compatible client. Access the admin UI at `http://localhost:8080`.
+
+## Configuration
+
+Key variables you can customize in this template:
+
+```yaml
+variables:
+  db_port: "26257"              # CockroachDB database port (env: DB_PORT)
+  admin_port: "8080"            # CockroachDB admin interface port (env: ADMIN_PORT)
+  image: "v20.1.4"              # Docker image tag
+```
+
+Data is persisted under `${monk-volume-path}/cockroachdb:/cockroach/cockroach-data` on the host.
+
+## Use by inheritance (recommended for apps)
+
+Inherit the CockroachDB runnable in your application and declare a connection. Example:
+
+```yaml
+namespace: myapp
+db:
+  defines: runnable
+  inherits: cockroachdb/db
+api:
+  defines: runnable
+  containers:
+    api:
+      image: myorg/api
+  connections:
+    database:
+      runnable: db
+      service: cockroachdb
+  variables:
+    database-host:
+      value: <- connection-hostname("database")
+    database-port:
+      value: "26257"
+```
+
+Then set any required configuration and run your app group:
+
+```bash
+monk run myapp/api
+```
+
+## Ports and connectivity
+
+- Service: CockroachDB SQL on TCP port `26257`
+- Admin UI: HTTP on TCP port `8080`
+- From other runnables in the same process group, use `connection-hostname("<connection-name>")` to resolve the DB host.
+
+## Persistence and configuration
+
+- Data path: `${monk-volume-path}/cockroachdb:/cockroach/cockroach-data`
+- CockroachDB stores all database data in this directory
+- Ensure the host volumes are writable by the container user
+
+## PostgreSQL compatibility
+
+CockroachDB speaks the PostgreSQL wire protocol, so you can use existing PostgreSQL client drivers and libraries to connect. It supports most standard PostgreSQL SQL features.
+
+## Related templates
+
+- For CockroachDB cluster deployment, configure multiple nodes with `--join` flags.
+- Use `pgadmin/` for web-based PostgreSQL-compatible administration.
+- Combine with `haproxy/` for load balancing.
+
+## Troubleshooting
+
+- CockroachDB may take a few moments to start.
+- Ensure the host volumes are writable by the container user.
+- Check logs:
+
+```bash
+monk logs -l 500 -f local/cockroachdb/db
+```
+
+- Access admin UI to monitor cluster health: `http://localhost:8080`
+
